@@ -1,0 +1,14 @@
+{
+  "name": "stripe-subscription-backend",
+  "version": "1.0.0",
+  "description": "Stripe subscription backend",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "stripe": "^14.0.0"
+  }
+}
