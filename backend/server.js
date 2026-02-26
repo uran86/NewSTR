@@ -74,7 +74,7 @@ app.post('/api/subscribe', async (req, res) => {
       items: [{ price: product.priceId, quantity: parseInt(quantity) }],
       billing_cycle_anchor: billingAnchor,
       trial_end: billingAnchor,
-      proration_behavior: 'none',
+      proration_behavior: 'create_prorations',
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent'],
     };
