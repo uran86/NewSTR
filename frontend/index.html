@@ -430,6 +430,10 @@
         <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Moms (25 %)</span>
         <span id="price-vat" style="font-size:0.95rem; color:#e0e4f0; font-weight:500;"></span>
       </div>
+      <div id="discount-row" style="display:none; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+        <span style="font-size:0.82rem; color:#34d399; letter-spacing:0.05em; text-transform:uppercase;">Rabatt (<span id="discount-label"></span>)</span>
+        <span id="price-discount" style="font-size:0.95rem; color:#34d399; font-weight:600;"></span>
+      </div>
       <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e2540; padding-top:0.7rem; margin-top:0.2rem;">
         <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Totalt per månad (inkl. moms)</span>
         <span id="price-total" style="font-size:1.15rem; color:#f0f1f5; font-weight:700;"></span>
@@ -495,7 +499,6 @@
       <span id="btn-text">Aktivera tjänstepaket</span>
       <div class="spinner" id="spinner"></div>
     </button>
-
     <div style="text-align:center; margin-top:0.75rem; margin-bottom:0.25rem;">
       <span style="font-size:0.78rem; color:#6b7280; letter-spacing:0.03em;">Summa att betala idag</span>
       <span style="font-size:1rem; font-weight:700; color:#34d399; margin-left:0.5rem;">0,00 kr</span>
@@ -545,7 +548,7 @@
 
 <script>
   // ── Stripe publishable key ───────────────────────────────
-  const STRIPE_PUBLISHABLE_KEY = 'pk_live_yf7boCDIeKmOAQunP4K5FWIC';
+  const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_WITH_YOUR_KEY';
   // ────────────────────────────────────────────────────────
 
   const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
@@ -584,6 +587,7 @@
 
   // ── Coupon ───────────────────────────────────────────────
   let validCouponId = null;
+  let validCouponData = null;
   async function applyCoupon() {
     const code = document.getElementById('coupon').value.trim();
     const statusEl = document.getElementById('coupon-status');
@@ -595,12 +599,16 @@
       const data = await res.json();
       if (data.valid) {
         validCouponId = data.couponId;
+        validCouponData = { ...data, percentOff: data.percentOff, amountOff: data.amountOff };
         statusEl.textContent = '✓ Kampanjkod tillagd: ' + data.description;
         statusEl.className = 'coupon-status ok';
+        updatePrice();
       } else {
         validCouponId = null;
+        validCouponData = null;
         statusEl.textContent = 'Ogiltig kampanjkod.';
         statusEl.className = 'coupon-status err';
+        updatePrice();
       }
     } catch { statusEl.textContent = 'Kunde inte kontrollera koden.'; statusEl.className = 'coupon-status err'; }
   }
@@ -738,10 +746,55 @@
       total        = fmt(sub + v);
     }
 
+    // Apply discount if coupon active
+    let discountAmount = 0;
+    const discountRow = document.getElementById('discount-row');
+    if (validCouponData) {
+      if (validCouponData.percentOff) {
+        discountAmount = (parseFloat(total.replace(/[^0-9,]/g, '').replace(',', '.')) || 0) * (validCouponData.percentOff / 100);
+      } else if (validCouponData.amountOff) {
+        discountAmount = validCouponData.amountOff;
+      }
+    }
+
+    // Recalculate with discount applied to subtotal
+    let finalSubtotal, finalVat, finalTotal, discountFmt;
+    if (currency === 'EUR') {
+      const rate = eurRate || 0.089;
+      const perUser = priceSEK * rate;
+      const sub = perUser * quantity;
+      const discountEur = validCouponData?.percentOff ? sub * (validCouponData.percentOff / 100) : (validCouponData?.amountOff || 0) * rate;
+      const discountedSub = Math.max(0, sub - discountEur);
+      const v = discountedSub * VAT;
+      const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      finalSubtotal = fmt(sub);
+      finalVat = fmt(v);
+      finalTotal = fmt(discountedSub + v);
+      discountFmt = discountEur > 0 ? '-' + fmt(discountEur) : null;
+    } else {
+      const sub = priceSEK * quantity;
+      const discountSEK = validCouponData?.percentOff ? sub * (validCouponData.percentOff / 100) : (validCouponData?.amountOff || 0);
+      const discountedSub = Math.max(0, sub - discountSEK);
+      const v = discountedSub * VAT;
+      const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
+      finalSubtotal = fmt(sub);
+      finalVat = fmt(v);
+      finalTotal = fmt(discountedSub + v);
+      discountFmt = discountSEK > 0 ? '-' + fmt(discountSEK) : null;
+    }
+
     document.getElementById('price-per-user').textContent = pricePerUser;
-    document.getElementById('price-subtotal').textContent = subtotal + '/mån';
-    document.getElementById('price-vat').textContent = vat + '/mån';
-    document.getElementById('price-total').textContent = total + '/mån';
+    document.getElementById('price-subtotal').textContent = finalSubtotal + '/mån';
+    document.getElementById('price-vat').textContent = finalVat + '/mån';
+    document.getElementById('price-total').textContent = finalTotal + '/mån';
+
+    if (validCouponData && discountFmt) {
+      document.getElementById('discount-label').textContent = validCouponData.description || '';
+      document.getElementById('price-discount').textContent = discountFmt + '/mån';
+      discountRow.style.display = 'flex';
+    } else {
+      discountRow.style.display = 'none';
+    }
     box.style.display = 'block';
   }
 
