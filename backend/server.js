@@ -57,14 +57,9 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
         <!-- Header -->
-        <tr><td style="background:#131c36;padding:36px 40px;text-align:center;">
-          <img src="https://inexpro.net/wp-content/uploads/2026/02/New-inexpro-White-logo-no-background-3.png" alt="InexPro" style="height:48px;max-width:220px;object-fit:contain;"/>
-          <div style="color:#ffffff;font-size:13px;margin-top:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;">Prenumerationsbekräftelse</div>
-        </td></tr>
-
-        <!-- Success icon -->
-        <tr><td style="background:#131c36;padding:0 40px 36px;text-align:center;">
-          <div style="display:inline-block;background:rgba(52,211,153,0.1);border:2px solid #34d399;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;">✓</div>
+        <tr><td style="background:#131c36;padding:40px 40px 32px;text-align:center;">
+          <img src="https://inexpro.net/wp-content/uploads/2026/02/New-inexpro-White-logo-no-background-3.png" alt="InexPro" style="height:64px;max-width:280px;object-fit:contain;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;"/>
+          <div style="color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Prenumerationsbekräftelse</div>
         </td></tr>
 
         <!-- Body -->
