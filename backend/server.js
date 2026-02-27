@@ -38,10 +38,12 @@ function formatSEK(amount) {
 }
 
 // ── Send confirmation email ───────────────────────────────────
-async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK, firstBillingDate }) {
-  const subtotal = priceSEK * quantity;
-  const vat      = subtotal * 0.25;
-  const total    = subtotal + vat;
+async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK, firstBillingDate, discountDescription, discountPercent, discountAmount }) {
+  const subtotal      = priceSEK * quantity;
+  const discountSEK   = discountPercent ? subtotal * (discountPercent / 100) : (discountAmount || 0);
+  const discountedSub = Math.max(0, subtotal - discountSEK);
+  const vat           = discountedSub * 0.25;
+  const total         = discountedSub + vat;
 
   await resend.emails.send({
     from: 'InexPro <noreply@inexpro.net>',
@@ -93,6 +95,10 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
                 <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Moms (25 %)</td>
                 <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(vat)}</td>
               </tr>
+              ${discountSEK > 0 ? `<tr>
+                <td style="font-size:14px;color:#34d399;padding-bottom:10px;">Rabatt (${discountDescription})</td>
+                <td style="font-size:14px;color:#34d399;font-weight:600;text-align:right;padding-bottom:10px;">-${formatSEK(discountSEK)}</td>
+              </tr>` : ''}
               <tr style="border-top:1px solid #e5e7eb;">
                 <td style="font-size:15px;color:#0e0f13;font-weight:700;padding-top:12px;">Totalt per månad (inkl. moms)</td>
                 <td style="font-size:15px;color:#5b7fff;font-weight:700;text-align:right;padding-top:12px;">${formatSEK(total)}</td>
@@ -276,6 +282,20 @@ app.post('/api/subscribe', async (req, res) => {
 
     // Send confirmation email (non-fatal)
     try {
+      // Fetch coupon details if applied
+      let discountDescription = null, discountPercent = null, discountAmountVal = null;
+      if (couponId) {
+        try {
+          const promos = await stripe.promotionCodes.list({ limit: 1 });
+          const sub = await stripe.subscriptions.retrieve(subscription.id, { expand: ['discount.coupon'] });
+          if (sub.discount && sub.discount.coupon) {
+            const c = sub.discount.coupon;
+            discountPercent = c.percent_off || null;
+            discountAmountVal = c.amount_off ? c.amount_off / 100 : null;
+            discountDescription = discountPercent ? `${discountPercent}% rabatt` : `${discountAmountVal} kr rabatt`;
+          }
+        } catch (e) { console.error('Discount fetch error:', e.message); }
+      }
       await sendConfirmationEmail({
         to: email,
         name,
@@ -283,6 +303,9 @@ app.post('/api/subscribe', async (req, res) => {
         quantity: parseInt(quantity),
         priceSEK: product.priceSEK,
         firstBillingDate,
+        discountDescription,
+        discountPercent,
+        discountAmount: discountAmountVal,
       });
     } catch (mailErr) {
       console.error('Mail error (non-fatal):', mailErr.message);
