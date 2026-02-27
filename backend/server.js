@@ -57,13 +57,13 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
         <!-- Header -->
-        <tr><td style="background:#0e0f13;padding:36px 40px;text-align:center;">
-          <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#ffffff;">Inex<span style="color:#5b7fff;">Pro</span></div>
-          <div style="color:#6b7280;font-size:13px;margin-top:6px;letter-spacing:0.05em;text-transform:uppercase;">Prenumerationsbekräftelse</div>
+        <tr><td style="background:#131c36;padding:36px 40px;text-align:center;">
+          <img src="https://inexpro.net/wp-content/uploads/2026/02/New-inexpro-White-logo-no-background-3.png" alt="InexPro" style="height:48px;max-width:220px;object-fit:contain;"/>
+          <div style="color:#ffffff;font-size:13px;margin-top:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;">Prenumerationsbekräftelse</div>
         </td></tr>
 
         <!-- Success icon -->
-        <tr><td style="background:#0e0f13;padding:0 40px 36px;text-align:center;">
+        <tr><td style="background:#131c36;padding:0 40px 36px;text-align:center;">
           <div style="display:inline-block;background:rgba(52,211,153,0.1);border:2px solid #34d399;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;">✓</div>
         </td></tr>
 
