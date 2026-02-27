@@ -21,7 +21,6 @@ const PRODUCTS = {
   secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', name: 'Sec-Cloud Paket',       priceSEK: 2899 },
   ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', name: 'EKONOMI Paket Extended',priceSEK: 2299 },
   basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', name: 'Bas Paket Extended',    priceSEK: 1799 },
-  testProd1:       { priceId: 'price_1T1cHmJO7rIXcjdNY5fSYKKA', name: 'test-prod1',            priceSEK: 0   },
 };
 
 function getNextBillingAnchor() {
