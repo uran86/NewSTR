@@ -1,20 +1,27 @@
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { Resend } = require('resend');
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
 const PRODUCTS = {
-  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', name: 'Premium Paket E5' },
-  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', name: 'Premium Paket E3' },
-  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', name: 'Sec-Cloud Paket' },
-  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', name: 'EKONOMI Paket Extended' },
-  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', name: 'Bas Paket Extended' },
-  testProd1:       { priceId: 'price_1T1cHmJO7rIXcjdNY5fSYKKA', name: 'test-prod1' },
+  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', name: 'Premium Paket E5', priceSEK: 6499 },
+  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', name: 'Premium Paket E3', priceSEK: 4499 },
+  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', name: 'Sec-Cloud Paket',  priceSEK: 2899 },
+  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', name: 'EKONOMI Paket Extended', priceSEK: 2299 },
+  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', name: 'Bas Paket Extended', priceSEK: 1799 },
+  testProd1:       { priceId: 'price_1T1cHmJO7rIXcjdNY5fSYKKA', name: 'test-prod1', priceSEK: 0 },
 };
 
 function getNextBillingAnchor() {
@@ -24,6 +31,158 @@ function getNextBillingAnchor() {
     next28th = new Date(now.getFullYear(), now.getMonth() + 1, 28);
   }
   return Math.floor(next28th.getTime() / 1000);
+}
+
+function formatSEK(amount) {
+  return amount.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
+}
+
+// ── Send confirmation email ───────────────────────────────────
+async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK, firstBillingDate }) {
+  const subtotal = priceSEK * quantity;
+  const vat      = subtotal * 0.25;
+  const total    = subtotal + vat;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prenumerationsbekräftelse</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:#0e0f13;padding:36px 40px;text-align:center;">
+              <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">
+                Inex<span style="color:#5b7fff;">Pro</span>
+              </div>
+              <div style="color:#6b7280;font-size:13px;margin-top:6px;letter-spacing:0.05em;text-transform:uppercase;">Prenumerationsbekräftelse</div>
+            </td>
+          </tr>
+
+          <!-- Success badge -->
+          <tr>
+            <td style="background:#0e0f13;padding:0 40px 36px;text-align:center;">
+              <div style="display:inline-block;background:rgba(52,211,153,0.1);border:2px solid #34d399;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;margin:0 auto;">✓</div>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px 40px 0;">
+              <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0e0f13;">Tack, ${name}!</h1>
+              <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                Din prenumeration är nu aktiverad. Inget har debiterats idag — din första faktura skickas <strong style="color:#0e0f13;">${firstBillingDate}</strong>.
+              </p>
+
+              <!-- Order summary -->
+              <div style="background:#f8f9fc;border-radius:12px;padding:24px;margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:16px;">Prenumerationsdetaljer</div>
+                
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Paket</td>
+                    <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${productName}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Antal användare</td>
+                    <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${quantity} st</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Pris per användare (exkl. moms)</td>
+                    <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(priceSEK)}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Delsumma (exkl. moms)</td>
+                    <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(subtotal)}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Moms (25 %)</td>
+                    <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(vat)}</td>
+                  </tr>
+                  <tr style="border-top:1px solid #e5e7eb;">
+                    <td style="font-size:15px;color:#0e0f13;font-weight:700;padding-top:12px;">Totalt per månad (inkl. moms)</td>
+                    <td style="font-size:15px;color:#5b7fff;font-weight:700;text-align:right;padding-top:12px;">${formatSEK(total)}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Billing info -->
+              <div style="background:#eff6ff;border-left:4px solid #5b7fff;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+                <div style="font-size:13px;color:#3b5bdb;font-weight:600;margin-bottom:4px;">📅 Faktureringsdatum</div>
+                <div style="font-size:14px;color:#1e3a8a;line-height:1.5;">
+                  Första faktura: <strong>${firstBillingDate}</strong><br/>
+                  Därefter faktureras du den <strong>28:e varje månad</strong>.
+                </div>
+              </div>
+
+              <!-- Links -->
+              <div style="margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;">Viktig information</div>
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding-bottom:8px;">
+                      <a href="https://inexpro.net/allmanna-villkor/" style="color:#5b7fff;text-decoration:none;font-size:14px;">📄 Tjänstevillkor</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-bottom:8px;">
+                      <a href="https://inexpro.net/policy-retur/" style="color:#5b7fff;text-decoration:none;font-size:14px;">↩️ Återbetalningspolicy</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="https://inexpro.net/Integritetspolicy/" style="color:#5b7fff;text-decoration:none;font-size:14px;">🔒 Integritetspolicy</a>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Support -->
+          <tr>
+            <td style="padding:0 40px 40px;">
+              <div style="background:#f8f9fc;border-radius:12px;padding:20px 24px;">
+                <div style="font-size:13px;font-weight:600;color:#0e0f13;margin-bottom:6px;">Behöver du hjälp?</div>
+                <div style="font-size:13px;color:#6b7280;line-height:1.6;">
+                  Kontakta oss på <a href="mailto:info@inexpro.net" style="color:#5b7fff;text-decoration:none;">info@inexpro.net</a>
+                  eller besök <a href="https://inexpro.net" style="color:#5b7fff;text-decoration:none;">inexpro.net</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8f9fc;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
+              <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
+                © ${new Date().getFullYear()} InexPro. Alla rättigheter förbehållna.<br/>
+                Du får detta mail eftersom du prenumererar på en InexPro-tjänst.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  await resend.emails.send({
+    from: 'InexPro <noreply@inexpro.net>',
+    to,
+    subject: '✓ Prenumerationsbekräftelse — InexPro',
+    html,
+  });
 }
 
 // ── POST /api/check-coupon ────────────────────────────────────
@@ -38,7 +197,7 @@ app.post('/api/check-coupon', async (req, res) => {
     let description = '';
     if (coupon.percent_off) description = `${coupon.percent_off}% rabatt`;
     else if (coupon.amount_off) description = `${coupon.amount_off / 100} kr rabatt`;
-    res.json({ valid: true, couponId: promo.id, description });
+    res.json({ valid: true, couponId: promo.id, description, percentOff: coupon.percent_off || null, amountOff: coupon.amount_off ? coupon.amount_off / 100 : null });
   } catch (err) {
     res.json({ valid: false });
   }
@@ -57,6 +216,7 @@ app.post('/api/subscribe', async (req, res) => {
 
   try {
     const billingAnchor = getNextBillingAnchor();
+    const firstBillingDate = new Date(billingAnchor * 1000).toLocaleDateString('sv-SE');
 
     const customer = await stripe.customers.create({
       email,
@@ -83,12 +243,26 @@ app.post('/api/subscribe', async (req, res) => {
 
     const subscription = await stripe.subscriptions.create(subscriptionData);
 
+    // Send confirmation email
+    try {
+      await sendConfirmationEmail({
+        to: email,
+        name,
+        productName: product.name,
+        quantity: parseInt(quantity),
+        priceSEK: product.priceSEK,
+        firstBillingDate,
+      });
+    } catch (mailErr) {
+      console.error('Mail error (non-fatal):', mailErr.message);
+    }
+
     res.json({
       success: true,
       customerId: customer.id,
       subscriptionId: subscription.id,
       status: subscription.status,
-      firstBillingDate: new Date(billingAnchor * 1000).toLocaleDateString('sv-SE'),
+      firstBillingDate,
     });
 
   } catch (err) {
