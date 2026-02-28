@@ -136,6 +136,7 @@
     select option { background: #18191f; }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .row-address { display: grid; grid-template-columns: 1fr 140px; gap: 1rem; }
 
     /* ── Stripe card element ── */
     #card-element {
@@ -328,6 +329,7 @@
 
     @media (max-width: 500px) {
       .row { grid-template-columns: 1fr; }
+      .row-address { grid-template-columns: 1fr; }
       h1 { font-size: 2.1rem; }
       .card { padding: 1.5rem 1.2rem; }
     }
@@ -364,9 +366,16 @@
       <input type="text" id="company" placeholder="Företaget AB" autocomplete="organization"/>
     </div>
 
-    <div class="form-group">
-      <label class="field-label" for="address">Företagsadress <span style="color:var(--error)">*</span></label>
-      <input type="text" id="address" placeholder="Storgatan 1, 111 22 Stockholm" autocomplete="street-address"/>
+    <!-- Företagsadress + Postnr på samma rad -->
+    <div class="row-address">
+      <div class="form-group">
+        <label class="field-label" for="address">Företagsadress <span style="color:var(--error)">*</span></label>
+        <input type="text" id="address" placeholder="Storgatan 1, Stockholm" autocomplete="street-address"/>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="postalCode">Postnr <span style="color:var(--error)">*</span></label>
+        <input type="text" id="postalCode" placeholder="111 22" autocomplete="postal-code"/>
+      </div>
     </div>
 
     <div class="row">
@@ -611,28 +620,30 @@
   }
 
   async function handleSubmit() {
-    const name      = document.getElementById('name').value.trim();
-    const email     = document.getElementById('email').value.trim();
-    const company   = document.getElementById('company').value.trim();
-    const address   = document.getElementById('address').value.trim();
-    const phone     = document.getElementById('phone').value.trim();
-    const country   = document.getElementById('country').value;
-    const currency  = document.getElementById('currency').value;
-    const product   = document.getElementById('product').value;
-    const quantity  = document.getElementById('quantity').value;
+    const name       = document.getElementById('name').value.trim();
+    const email      = document.getElementById('email').value.trim();
+    const company    = document.getElementById('company').value.trim();
+    const address    = document.getElementById('address').value.trim();
+    const postalCode = document.getElementById('postalCode').value.trim(); // ← NY
+    const phone      = document.getElementById('phone').value.trim();
+    const country    = document.getElementById('country').value;
+    const currency   = document.getElementById('currency').value;
+    const product    = document.getElementById('product').value;
+    const quantity   = document.getElementById('quantity').value;
     const cardholder = document.getElementById('cardholder').value.trim();
-    const terms     = document.getElementById('terms').checked;
-    const recurring = document.getElementById('recurring').checked;
-    const errEl     = document.getElementById('card-errors');
+    const terms      = document.getElementById('terms').checked;
+    const recurring  = document.getElementById('recurring').checked;
+    const errEl      = document.getElementById('card-errors');
 
     const fields = [
-      { id: 'name', val: name },
-      { id: 'email', val: email },
-      { id: 'company', val: company },
-      { id: 'address', val: address },
-      { id: 'phone', val: phone },
-      { id: 'product', val: product },
-      { id: 'quantity', val: quantity },
+      { id: 'name',       val: name },
+      { id: 'email',      val: email },
+      { id: 'company',    val: company },
+      { id: 'address',    val: address },
+      { id: 'postalCode', val: postalCode }, // ← NY
+      { id: 'phone',      val: phone },
+      { id: 'product',    val: product },
+      { id: 'quantity',   val: quantity },
       { id: 'cardholder', val: cardholder },
     ];
     let hasEmpty = false;
@@ -667,7 +678,14 @@
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, company, address, phone, country, currency, paymentMethodId: paymentMethod.id, productKey: product, quantity: parseInt(quantity), couponId: validCouponId || null }),
+        body: JSON.stringify({
+          name, email, company, address, postalCode, // ← postalCode tillagt
+          phone, country, currency,
+          paymentMethodId: paymentMethod.id,
+          productKey: product,
+          quantity: parseInt(quantity),
+          couponId: validCouponId || null,
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -713,7 +731,6 @@
     const box        = document.getElementById('price-box');
     const isEUR      = currency === 'EUR';
 
-    // Labels — Swedish for SEK, English for EUR
     const labels = isEUR ? {
       perUser:    'Price per user (excl. VAT)',
       subtotal:   'Subtotal (excl. VAT)',
