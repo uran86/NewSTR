@@ -16,11 +16,11 @@ app.get('/', (req, res) => {
 });
 
 const PRODUCTS = {
-  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', priceIdEUR: 'price_1T5p2lJO7rIXcjdNQJ543yLx', name: 'Premium Paket E5',       priceSEK: 6499 },
-  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', priceIdEUR: 'price_1T5p92JO7rIXcjdNAe6S66rI', name: 'Premium Paket E3',       priceSEK: 4499 },
-  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', priceIdEUR: 'price_1T5pBNJO7rIXcjdNUSJZM6DM', name: 'Sec-Cloud Paket',        priceSEK: 2899 },
-  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', priceIdEUR: 'price_1T5pCUJO7rIXcjdNtfr1Sa0m', name: 'EKONOMI Paket Extended', priceSEK: 2299 },
-  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', priceIdEUR: 'price_1T5pDSJO7rIXcjdNqBmVlyaj', name: 'Bas Paket Extended',     priceSEK: 1799 },
+  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', priceIdEUR: 'price_1T5p2lJO7rIXcjdNQJ543yLx', name: 'Premium Paket E5',       priceSEK: 6499, priceEUR: 599 },
+  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', priceIdEUR: 'price_1T5p92JO7rIXcjdNAe6S66rI', name: 'Premium Paket E3',       priceSEK: 4499, priceEUR: 449 },
+  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', priceIdEUR: 'price_1T5pBNJO7rIXcjdNUSJZM6DM', name: 'Sec-Cloud Paket',        priceSEK: 2899, priceEUR: 279 },
+  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', priceIdEUR: 'price_1T5pCUJO7rIXcjdNtfr1Sa0m', name: 'EKONOMI Paket Extended', priceSEK: 2299, priceEUR: 219 },
+  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', priceIdEUR: 'price_1T5pDSJO7rIXcjdNqBmVlyaj', name: 'Bas Paket Extended',     priceSEK: 1799, priceEUR: 169 },
 };
 
 function getNextBillingAnchor() {
@@ -35,12 +35,18 @@ function getNextBillingAnchor() {
 function formatSEK(amount) {
   return amount.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
 }
+function formatCurrency(amount, symbol) {
+  return amount.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
+}
 
 // ── Send confirmation email ───────────────────────────────────
-async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK, firstBillingDate, discountDescription, discountPercent, discountAmount }) {
-  const subtotal      = priceSEK * quantity;
-  const discountSEK   = discountPercent ? subtotal * (discountPercent / 100) : (discountAmount || 0);
-  const discountedSub = Math.max(0, subtotal - discountSEK);
+async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK, priceEUR, currency, firstBillingDate, discountDescription, discountPercent, discountAmount }) {
+  const isEUR         = currency === 'EUR' && priceEUR;
+  const unitPrice     = isEUR ? priceEUR : priceSEK;
+  const symbol        = isEUR ? '€' : 'kr';
+  const subtotal      = unitPrice * quantity;
+  const discountAmt   = discountPercent ? subtotal * (discountPercent / 100) : (discountAmount || 0);
+  const discountedSub = Math.max(0, subtotal - discountAmt);
   const vat           = discountedSub * 0.25;
   const total         = discountedSub + vat;
 
@@ -302,6 +308,8 @@ app.post('/api/subscribe', async (req, res) => {
         productName: product.name,
         quantity: parseInt(quantity),
         priceSEK: product.priceSEK,
+        priceEUR: product.priceEUR,
+        currency,
         firstBillingDate,
         discountDescription,
         discountPercent,
