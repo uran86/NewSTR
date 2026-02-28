@@ -315,7 +315,7 @@ app.post('/api/check-coupon', async (req, res) => {
 
 // ── POST /api/subscribe ───────────────────────────────────────
 app.post('/api/subscribe', async (req, res) => {
-  const { email, name, company, address, phone, country, currency, paymentMethodId, productKey, quantity, couponId } = req.body;
+  const { email, name, company, address, postalCode, phone, country, currency, paymentMethodId, productKey, quantity, couponId } = req.body;
 
   if (!email || !name || !paymentMethodId || !productKey || !quantity) {
     return res.status(400).json({ error: 'Obligatoriska fält saknas.' });
@@ -335,12 +335,14 @@ app.post('/api/subscribe', async (req, res) => {
       phone: phone || undefined,
       address: {                        // "Faktureringsadress" — visas i Stripe
         line1: address || undefined,
+        postal_code: postalCode || undefined,
         country: country || undefined,
       },
       shipping: {
         name: name,                     // "Den fysiska personens namn"
         address: {
           line1: address || undefined,
+          postal_code: postalCode || undefined,
           country: country || undefined,
         },
       },
