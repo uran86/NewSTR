@@ -90,23 +90,23 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
               </tr>
               <tr>
                 <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Pris per användare (exkl. moms)</td>
-                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(priceSEK)}</td>
+                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(unitPrice, symbol)}</td>
               </tr>
               <tr>
                 <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Delsumma (exkl. moms)</td>
-                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(subtotal)}</td>
+                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(subtotal, symbol)}</td>
               </tr>
               <tr>
                 <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Moms (25 %)</td>
-                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatSEK(vat)}</td>
+                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(vat, symbol)}</td>
               </tr>
-              ${discountSEK > 0 ? `<tr>
+              ${discountAmt > 0 ? `<tr>
                 <td style="font-size:14px;color:#34d399;padding-bottom:10px;">Rabatt (${discountDescription})</td>
-                <td style="font-size:14px;color:#34d399;font-weight:600;text-align:right;padding-bottom:10px;">-${formatSEK(discountSEK)}</td>
+                <td style="font-size:14px;color:#34d399;font-weight:600;text-align:right;padding-bottom:10px;">-${formatCurrency(discountAmt, symbol)}</td>
               </tr>` : ''}
               <tr style="border-top:1px solid #e5e7eb;">
                 <td style="font-size:15px;color:#0e0f13;font-weight:700;padding-top:12px;">Totalt per månad (inkl. moms)</td>
-                <td style="font-size:15px;color:#5b7fff;font-weight:700;text-align:right;padding-top:12px;">${formatSEK(total)}</td>
+                <td style="font-size:15px;color:#5b7fff;font-weight:700;text-align:right;padding-top:12px;">${formatCurrency(total, symbol)}</td>
               </tr>
             </table>
           </div>
