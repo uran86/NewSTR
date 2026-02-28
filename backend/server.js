@@ -16,11 +16,11 @@ app.get('/', (req, res) => {
 });
 
 const PRODUCTS = {
-  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', name: 'Premium Paket E5',      priceSEK: 6499 },
-  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', name: 'Premium Paket E3',      priceSEK: 4499 },
-  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', name: 'Sec-Cloud Paket',       priceSEK: 2899 },
-  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', name: 'EKONOMI Paket Extended',priceSEK: 2299 },
-  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', name: 'Bas Paket Extended',    priceSEK: 1799 },
+  premiumE5:       { priceId: 'price_1T4na5JO7rIXcjdNWM0IGRT6', priceIdEUR: 'price_1T5p2lJO7rIXcjdNQJ543yLx', name: 'Premium Paket E5',       priceSEK: 6499 },
+  premiumE3:       { priceId: 'price_1T4nREJO7rIXcjdNWhOtgWBQ', priceIdEUR: 'price_1T5p92JO7rIXcjdNAe6S66rI', name: 'Premium Paket E3',       priceSEK: 4499 },
+  secCloud:        { priceId: 'price_1T1bXsJO7rIXcjdNQD87DM9H', priceIdEUR: 'price_1T5pBNJO7rIXcjdNUSJZM6DM', name: 'Sec-Cloud Paket',        priceSEK: 2899 },
+  ekonomiExtended: { priceId: 'price_1T1ahMJO7rIXcjdNwPQKK4eh', priceIdEUR: 'price_1T5pCUJO7rIXcjdNtfr1Sa0m', name: 'EKONOMI Paket Extended', priceSEK: 2299 },
+  basExtended:     { priceId: 'price_1T1aWAJO7rIXcjdNoN7YANT6', priceIdEUR: 'price_1T5pDSJO7rIXcjdNqBmVlyaj', name: 'Bas Paket Extended',     priceSEK: 1799 },
 };
 
 function getNextBillingAnchor() {
@@ -264,10 +264,11 @@ app.post('/api/subscribe', async (req, res) => {
       invoice_settings: { default_payment_method: paymentMethodId },
     });
 
+    const selectedPriceId = (currency === 'EUR' && product.priceIdEUR) ? product.priceIdEUR : product.priceId;
+
     const subscriptionData = {
-      currency: (currency || 'sek').toLowerCase(),
       customer: customer.id,
-      items: [{ price: product.priceId, quantity: parseInt(quantity) }],
+      items: [{ price: selectedPriceId, quantity: parseInt(quantity) }],
       billing_cycle_anchor: billingAnchor,
       trial_end: billingAnchor,
       proration_behavior: 'create_prorations',
