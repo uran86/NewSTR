@@ -423,28 +423,26 @@
     <!-- Price summary box -->
     <div id="price-box" style="display:none; background:#0e1420; border:1px solid #2a3560; border-radius:12px; padding:1.1rem 1.3rem; margin-bottom:0.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-        <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Pris per användare (exkl. moms)</span>
+        <span id="label-per-user" style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;"></span>
         <span id="price-per-user" style="font-size:0.95rem; color:#e0e4f0; font-weight:500;"></span>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-        <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Delsumma (exkl. moms)</span>
+        <span id="label-subtotal" style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;"></span>
         <span id="price-subtotal" style="font-size:0.95rem; color:#e0e4f0; font-weight:500;"></span>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-        <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Moms (25 %)</span>
+        <span id="label-vat" style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;"></span>
         <span id="price-vat" style="font-size:0.95rem; color:#e0e4f0; font-weight:500;"></span>
       </div>
       <div id="discount-row" style="display:none; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-        <span style="font-size:0.82rem; color:#34d399; letter-spacing:0.05em; text-transform:uppercase;">Rabatt (<span id="discount-label"></span>)</span>
+        <span style="font-size:0.82rem; color:#34d399; letter-spacing:0.05em; text-transform:uppercase;" id="label-discount"></span>
         <span id="price-discount" style="font-size:0.95rem; color:#34d399; font-weight:600;"></span>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e2540; padding-top:0.7rem; margin-top:0.2rem;">
-        <span style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;">Totalt per månad (inkl. moms)</span>
+        <span id="label-total" style="font-size:0.82rem; color:#7a7f91; letter-spacing:0.05em; text-transform:uppercase;"></span>
         <span id="price-total" style="font-size:1.15rem; color:#f0f1f5; font-weight:700;"></span>
       </div>
-      <div style="margin-top:0.6rem; font-size:0.75rem; color:#5b6a8a;">
-        ✓ Inget debiteras idag — första faktura den 28:e nästa månad
-      </div>
+      <div id="label-no-charge" style="margin-top:0.6rem; font-size:0.75rem; color:#5b6a8a;"></div>
     </div>
 
     <hr class="divider"/>
@@ -713,6 +711,30 @@
     const quantity   = parseInt(document.getElementById('quantity').value) || 0;
     const currency   = document.getElementById('currency').value;
     const box        = document.getElementById('price-box');
+    const isEUR      = currency === 'EUR';
+
+    // Labels — Swedish for SEK, English for EUR
+    const labels = isEUR ? {
+      perUser:    'Price per user (excl. VAT)',
+      subtotal:   'Subtotal (excl. VAT)',
+      vat:        'VAT (25 %)',
+      total:      'Total per month (incl. VAT)',
+      discount:   'Discount',
+      noCharge:   '✓ Nothing charged today — first invoice on the 28th next month',
+    } : {
+      perUser:    'Pris per användare (exkl. moms)',
+      subtotal:   'Delsumma (exkl. moms)',
+      vat:        'Moms (25 %)',
+      total:      'Totalt per månad (inkl. moms)',
+      discount:   'Rabatt',
+      noCharge:   '✓ Inget debiteras idag — första faktura den 28:e nästa månad',
+    };
+
+    document.getElementById('label-per-user').textContent  = labels.perUser;
+    document.getElementById('label-subtotal').textContent  = labels.subtotal;
+    document.getElementById('label-vat').textContent       = labels.vat;
+    document.getElementById('label-total').textContent     = labels.total;
+    document.getElementById('label-no-charge').textContent = labels.noCharge;
 
     const priceSEK = PRICES_SEK[productKey];
     if (!productKey || priceSEK === undefined || priceSEK === null || quantity < 1) {
@@ -721,75 +743,48 @@
     }
 
     const VAT = 0.25;
-    let pricePerUser, subtotal, vat, total;
+    let pricePerUser;
 
-    if (currency === 'EUR') {
+    if (isEUR) {
       const rate = await fetchEurRate();
-      const perUser = priceSEK * rate;
-      const sub = perUser * quantity;
-      const v = sub * VAT;
-      const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-      pricePerUser = fmt(perUser);
-      subtotal     = fmt(sub);
-      vat          = fmt(v);
-      total        = fmt(sub + v);
-    } else {
-      const sub = priceSEK * quantity;
-      const v = sub * VAT;
-      const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
-      pricePerUser = fmt(priceSEK);
-      subtotal     = fmt(sub);
-      vat          = fmt(v);
-      total        = fmt(sub + v);
-    }
-
-    let discountAmount = 0;
-    const discountRow = document.getElementById('discount-row');
-    if (validCouponData) {
-      if (validCouponData.percentOff) {
-        discountAmount = (parseFloat(total.replace(/[^0-9,]/g, '').replace(',', '.')) || 0) * (validCouponData.percentOff / 100);
-      } else if (validCouponData.amountOff) {
-        discountAmount = validCouponData.amountOff;
-      }
-    }
-
-    let finalSubtotal, finalVat, finalTotal, discountFmt;
-    if (currency === 'EUR') {
-      const rate = eurRate || 0.089;
       const perUser = priceSEK * rate;
       const sub = perUser * quantity;
       const discountEur = validCouponData?.percentOff ? sub * (validCouponData.percentOff / 100) : (validCouponData?.amountOff || 0) * rate;
       const discountedSub = Math.max(0, sub - discountEur);
       const v = discountedSub * VAT;
       const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-      finalSubtotal = fmt(sub);
-      finalVat = fmt(v);
-      finalTotal = fmt(discountedSub + v);
-      discountFmt = discountEur > 0 ? '-' + fmt(discountEur) : null;
+      pricePerUser = fmt(perUser);
+      document.getElementById('price-per-user').textContent  = pricePerUser;
+      document.getElementById('price-subtotal').textContent  = fmt(sub) + '/month';
+      document.getElementById('price-vat').textContent       = fmt(v) + '/month';
+      document.getElementById('price-total').textContent     = fmt(discountedSub + v) + '/month';
+      if (validCouponData && discountEur > 0) {
+        document.getElementById('label-discount').textContent  = labels.discount + ' (' + (validCouponData.description || '') + ')';
+        document.getElementById('price-discount').textContent  = '-' + fmt(discountEur) + '/month';
+        document.getElementById('discount-row').style.display = 'flex';
+      } else {
+        document.getElementById('discount-row').style.display = 'none';
+      }
     } else {
       const sub = priceSEK * quantity;
       const discountSEK = validCouponData?.percentOff ? sub * (validCouponData.percentOff / 100) : (validCouponData?.amountOff || 0);
       const discountedSub = Math.max(0, sub - discountSEK);
       const v = discountedSub * VAT;
       const fmt = n => n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
-      finalSubtotal = fmt(sub);
-      finalVat = fmt(v);
-      finalTotal = fmt(discountedSub + v);
-      discountFmt = discountSEK > 0 ? '-' + fmt(discountSEK) : null;
+      pricePerUser = fmt(priceSEK);
+      document.getElementById('price-per-user').textContent  = pricePerUser;
+      document.getElementById('price-subtotal').textContent  = fmt(sub) + '/mån';
+      document.getElementById('price-vat').textContent       = fmt(v) + '/mån';
+      document.getElementById('price-total').textContent     = fmt(discountedSub + v) + '/mån';
+      if (validCouponData && discountSEK > 0) {
+        document.getElementById('label-discount').textContent  = labels.discount + ' (' + (validCouponData.description || '') + ')';
+        document.getElementById('price-discount').textContent  = '-' + fmt(discountSEK) + '/mån';
+        document.getElementById('discount-row').style.display = 'flex';
+      } else {
+        document.getElementById('discount-row').style.display = 'none';
+      }
     }
 
-    document.getElementById('price-per-user').textContent = pricePerUser;
-    document.getElementById('price-subtotal').textContent = finalSubtotal + '/mån';
-    document.getElementById('price-vat').textContent = finalVat + '/mån';
-    document.getElementById('price-total').textContent = finalTotal + '/mån';
-
-    if (validCouponData && discountFmt) {
-      document.getElementById('discount-label').textContent = validCouponData.description || '';
-      document.getElementById('price-discount').textContent = discountFmt + '/mån';
-      discountRow.style.display = 'flex';
-    } else {
-      discountRow.style.display = 'none';
-    }
     box.style.display = 'block';
   }
 
