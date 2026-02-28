@@ -206,12 +206,36 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
   });
 
   // ── Onboarding / Welcome email ──────────────────────────────
+  const onboardingLang = isEUR ? {
+    subject:  'Welcome as a Partner — Start Your Onboarding',
+    header:   'WELCOME AS A PARTNER',
+    greeting: `Welcome as a partner!`,
+    intro:    `Your service package is now activated and you are ready to get started.`,
+    body:     `The next step is to set up your Microsoft platform. Follow our onboarding process by clicking the button below and completing the steps outlined in the documents.`,
+    btn:      'Start Onboarding →',
+    helpTitle:'Have questions?',
+    helpText: 'Contact us at',
+    helpVisit:'or visit',
+    footer:   `© ${new Date().getFullYear()} InexPro. All rights reserved.<br/>You are receiving this email because you recently activated a service package with InexPro.`,
+  } : {
+    subject:  'Välkommen som partner — Starta din onboarding',
+    header:   'VÄLKOMMEN SOM PARTNER',
+    greeting: `Välkommen som partner!`,
+    intro:    `Ditt tjänstepaket är nu aktiverat och du är redo att komma igång.`,
+    body:     `Nästa steg är att skapa din Microsoft-plattform. Följ vår onboarding-process genom att klicka på knappen nedan och följ stegen i dokumenten.`,
+    btn:      'Starta onboarding →',
+    helpTitle:'Har du frågor?',
+    helpText: 'Kontakta oss på',
+    helpVisit:'eller besök',
+    footer:   `© ${new Date().getFullYear()} InexPro. Alla rättigheter förbehållna.<br/>Du får detta mail eftersom du nyligen aktiverat ett tjänstepaket hos InexPro.`,
+  };
+
   await resend.emails.send({
     from: 'InexPro <noreply@inexpro.net>',
     to,
-    subject: 'Välkommen som partner — Starta din onboarding',
+    subject: onboardingLang.subject,
     html: `<!DOCTYPE html>
-<html lang="sv">
+<html lang="${isEUR ? 'en' : 'sv'}">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background:#f4f6fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:40px 0;">
@@ -221,21 +245,21 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
         <!-- Header -->
         <tr><td style="background:#131c36;padding:40px 40px 32px;text-align:center;">
           <img src="https://inexpro.net/wp-content/uploads/2026/02/New-inexpro-White-logo-no-background-3.png" alt="InexPro" style="height:64px;max-width:280px;object-fit:contain;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;"/>
-          <div style="color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Välkommen som partner</div>
+          <div style="color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">${onboardingLang.header}</div>
         </td></tr>
 
         <!-- Body -->
         <tr><td style="padding:40px 40px 0;">
-          <h1 style="margin:0 0 20px;font-size:24px;font-weight:700;color:#0e0f13;">Välkommen som partner!</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">Ditt tjänstepaket är nu aktiverat och du är redo att komma igång.</p>
-          <p style="margin:0 0 32px;font-size:15px;color:#6b7280;line-height:1.7;">Nästa steg är att skapa din Microsoft-plattform. Följ vår onboarding-process genom att klicka på knappen nedan och följ stegen i dokumenten.</p>
+          <h1 style="margin:0 0 20px;font-size:24px;font-weight:700;color:#0e0f13;">${onboardingLang.greeting}</h1>
+          <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">${onboardingLang.intro}</p>
+          <p style="margin:0 0 32px;font-size:15px;color:#6b7280;line-height:1.7;">${onboardingLang.body}</p>
 
           <!-- CTA Button -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:36px;">
             <tr><td align="center">
               <a href="https://e.pcloud.link/publink/show?code=kZwbl3Z0gtf0SUvx8p08LItSrfig7jR2dHX#/filemanager?folder=22640137024"
                  style="display:inline-block;background:#5b7fff;color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:10px;letter-spacing:0.02em;">
-                Starta onboarding →
+                ${onboardingLang.btn}
               </a>
             </td></tr>
           </table>
@@ -245,20 +269,17 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
         <!-- Support -->
         <tr><td style="padding:0 40px 40px;">
           <div style="background:#f8f9fc;border-radius:12px;padding:20px 24px;">
-            <div style="font-size:13px;font-weight:600;color:#0e0f13;margin-bottom:6px;">Har du frågor?</div>
+            <div style="font-size:13px;font-weight:600;color:#0e0f13;margin-bottom:6px;">${onboardingLang.helpTitle}</div>
             <div style="font-size:13px;color:#6b7280;line-height:1.6;">
-              Kontakta oss på <a href="mailto:info@inexpro.net" style="color:#5b7fff;text-decoration:none;">info@inexpro.net</a>
-              eller besök <a href="https://inexpro.net" style="color:#5b7fff;text-decoration:none;">inexpro.net</a>
+              ${onboardingLang.helpText} <a href="mailto:info@inexpro.net" style="color:#5b7fff;text-decoration:none;">info@inexpro.net</a>
+              ${onboardingLang.helpVisit} <a href="https://inexpro.net" style="color:#5b7fff;text-decoration:none;">inexpro.net</a>
             </div>
           </div>
         </td></tr>
 
         <!-- Footer -->
         <tr><td style="background:#f8f9fc;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-          <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
-            © ${new Date().getFullYear()} InexPro. Alla rättigheter förbehållna.<br/>
-            Du får detta mail eftersom du nyligen aktiverat ett tjänstepaket hos InexPro.
-          </div>
+          <div style="font-size:12px;color:#9ca3af;line-height:1.6;">${onboardingLang.footer}</div>
         </td></tr>
 
       </table>
