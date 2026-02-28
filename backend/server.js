@@ -50,7 +50,6 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
   const vat           = discountedSub * 0.25;
   const total         = discountedSub + vat;
 
-  // Language strings
   const t = isEUR ? {
     subject:        '✓ Subscription Confirmation — InexPro',
     header:         'SUBSCRIPTION CONFIRMATION',
@@ -316,7 +315,7 @@ app.post('/api/check-coupon', async (req, res) => {
 
 // ── POST /api/subscribe ───────────────────────────────────────
 app.post('/api/subscribe', async (req, res) => {
-  const { email, name, company, phone, country, currency, paymentMethodId, productKey, quantity, couponId } = req.body;
+  const { email, name, company, address, phone, country, currency, paymentMethodId, productKey, quantity, couponId } = req.body;
 
   if (!email || !name || !paymentMethodId || !productKey || !quantity) {
     return res.status(400).json({ error: 'Obligatoriska fält saknas.' });
@@ -329,12 +328,26 @@ app.post('/api/subscribe', async (req, res) => {
     const billingAnchor = getNextBillingAnchor();
     const firstBillingDate = new Date(billingAnchor * 1000).toLocaleDateString('sv-SE');
 
+    // ── FIX: Stripe now receives company name, physical person name, and billing address ──
     const customer = await stripe.customers.create({
       email,
-      name,
+      name: company || name,           // "Företagsnamn" — visas som kundnamn i Stripe
       phone: phone || undefined,
-      address: country ? { country } : undefined,
-      metadata: { company: company || '' },
+      address: {                        // "Faktureringsadress" — visas i Stripe
+        line1: address || undefined,
+        country: country || undefined,
+      },
+      shipping: {
+        name: name,                     // "Den fysiska personens namn"
+        address: {
+          line1: address || undefined,
+          country: country || undefined,
+        },
+      },
+      metadata: {
+        contact_name: name,             // Fysisk kontaktperson sparas i metadata
+        company: company || '',
+      },
       payment_method: paymentMethodId,
       invoice_settings: { default_payment_method: paymentMethodId },
     });
@@ -357,11 +370,9 @@ app.post('/api/subscribe', async (req, res) => {
 
     // Send confirmation email (non-fatal)
     try {
-      // Fetch coupon details if applied
       let discountDescription = null, discountPercent = null, discountAmountVal = null;
       if (couponId) {
         try {
-          const promos = await stripe.promotionCodes.list({ limit: 1 });
           const sub = await stripe.subscriptions.retrieve(subscription.id, { expand: ['discount.coupon'] });
           if (sub.discount && sub.discount.coupon) {
             const c = sub.discount.coupon;
