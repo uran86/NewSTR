@@ -50,13 +50,66 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
   const vat           = discountedSub * 0.25;
   const total         = discountedSub + vat;
 
+  // Language strings
+  const t = isEUR ? {
+    subject:        '✓ Subscription Confirmation — InexPro',
+    header:         'SUBSCRIPTION CONFIRMATION',
+    greeting:       `Thank you, ${name}!`,
+    intro:          `Your subscription is now active. Nothing has been charged today — your first invoice will be sent on <strong style="color:#0e0f13;">${firstBillingDate}</strong>.`,
+    detailsTitle:   'SUBSCRIPTION DETAILS',
+    package:        'Package',
+    users:          'Number of users',
+    pricePerUser:   'Price per user (excl. VAT)',
+    subtotal:       'Subtotal (excl. VAT)',
+    vat:            'VAT (25 %)',
+    discount:       'Discount',
+    total:          'Total per month (incl. VAT)',
+    billingTitle:   '📅 Billing date',
+    billingFirst:   'First invoice',
+    billingRecurr:  'Thereafter billed on the <strong>28th of every month</strong>.',
+    infoTitle:      'IMPORTANT INFORMATION',
+    terms:          '📄 Terms of Service',
+    refund:         '↩️ Refund Policy',
+    privacy:        '🔒 Privacy Policy',
+    helpTitle:      'Need help?',
+    helpText:       'Contact us at',
+    helpVisit:      'or visit',
+    footer:         `© ${new Date().getFullYear()} InexPro. All rights reserved.<br/>You are receiving this email because you have subscribed to an InexPro service.`,
+    unit:           'pcs',
+  } : {
+    subject:        '✓ Prenumerationsbekräftelse — InexPro',
+    header:         'PRENUMERATIONSBEKRÄFTELSE',
+    greeting:       `Tack, ${name}!`,
+    intro:          `Din prenumeration är nu aktiverad. Inget har debiterats idag — din första faktura skickas <strong style="color:#0e0f13;">${firstBillingDate}</strong>.`,
+    detailsTitle:   'PRENUMERATIONSDETALJER',
+    package:        'Paket',
+    users:          'Antal användare',
+    pricePerUser:   'Pris per användare (exkl. moms)',
+    subtotal:       'Delsumma (exkl. moms)',
+    vat:            'Moms (25 %)',
+    discount:       'Rabatt',
+    total:          'Totalt per månad (inkl. moms)',
+    billingTitle:   '📅 Faktureringsdatum',
+    billingFirst:   'Första faktura',
+    billingRecurr:  'Därefter faktureras du den <strong>28:e varje månad</strong>.',
+    infoTitle:      'VIKTIG INFORMATION',
+    terms:          '📄 Tjänstevillkor',
+    refund:         '↩️ Återbetalningspolicy',
+    privacy:        '🔒 Integritetspolicy',
+    helpTitle:      'Behöver du hjälp?',
+    helpText:       'Kontakta oss på',
+    helpVisit:      'eller besök',
+    footer:         `© ${new Date().getFullYear()} InexPro. Alla rättigheter förbehållna.<br/>Du får detta mail eftersom du prenumererar på en InexPro-tjänst.`,
+    unit:           'st',
+  };
+
   await resend.emails.send({
     from: 'InexPro <noreply@inexpro.net>',
     to,
-    subject: '✓ Prenumerationsbekräftelse — InexPro',
+    subject: t.subject,
     html: `
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="${isEUR ? 'en' : 'sv'}">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background:#f4f6fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:40px 0;">
@@ -66,46 +119,44 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
         <!-- Header -->
         <tr><td style="background:#131c36;padding:40px 40px 32px;text-align:center;">
           <img src="https://inexpro.net/wp-content/uploads/2026/02/New-inexpro-White-logo-no-background-3.png" alt="InexPro" style="height:64px;max-width:280px;object-fit:contain;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;"/>
-          <div style="color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Prenumerationsbekräftelse</div>
+          <div style="color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">${t.header}</div>
         </td></tr>
 
         <!-- Body -->
         <tr><td style="padding:40px 40px 0;">
-          <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0e0f13;">Tack, ${name}!</h1>
-          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
-            Din prenumeration är nu aktiverad. Inget har debiterats idag — din första faktura skickas <strong style="color:#0e0f13;">${firstBillingDate}</strong>.
-          </p>
+          <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0e0f13;">${t.greeting}</h1>
+          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">${t.intro}</p>
 
           <!-- Order summary -->
           <div style="background:#f8f9fc;border-radius:12px;padding:24px;margin-bottom:28px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:16px;">Prenumerationsdetaljer</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:16px;">${t.detailsTitle}</div>
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Paket</td>
+                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">${t.package}</td>
                 <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${productName}</td>
               </tr>
               <tr>
-                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Antal användare</td>
-                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${quantity} st</td>
+                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">${t.users}</td>
+                <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${quantity} ${t.unit}</td>
               </tr>
               <tr>
-                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Pris per användare (exkl. moms)</td>
+                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">${t.pricePerUser}</td>
                 <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(unitPrice, symbol)}</td>
               </tr>
               <tr>
-                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Delsumma (exkl. moms)</td>
+                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">${t.subtotal}</td>
                 <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(subtotal, symbol)}</td>
               </tr>
               <tr>
-                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">Moms (25 %)</td>
+                <td style="font-size:14px;color:#6b7280;padding-bottom:10px;">${t.vat}</td>
                 <td style="font-size:14px;color:#0e0f13;font-weight:600;text-align:right;padding-bottom:10px;">${formatCurrency(vat, symbol)}</td>
               </tr>
               ${discountAmt > 0 ? `<tr>
-                <td style="font-size:14px;color:#34d399;padding-bottom:10px;">Rabatt (${discountDescription})</td>
+                <td style="font-size:14px;color:#34d399;padding-bottom:10px;">${t.discount} (${discountDescription})</td>
                 <td style="font-size:14px;color:#34d399;font-weight:600;text-align:right;padding-bottom:10px;">-${formatCurrency(discountAmt, symbol)}</td>
               </tr>` : ''}
               <tr style="border-top:1px solid #e5e7eb;">
-                <td style="font-size:15px;color:#0e0f13;font-weight:700;padding-top:12px;">Totalt per månad (inkl. moms)</td>
+                <td style="font-size:15px;color:#0e0f13;font-weight:700;padding-top:12px;">${t.total}</td>
                 <td style="font-size:15px;color:#5b7fff;font-weight:700;text-align:right;padding-top:12px;">${formatCurrency(total, symbol)}</td>
               </tr>
             </table>
@@ -113,20 +164,20 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
 
           <!-- Billing info -->
           <div style="background:#eff6ff;border-left:4px solid #5b7fff;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
-            <div style="font-size:13px;color:#3b5bdb;font-weight:600;margin-bottom:4px;">📅 Faktureringsdatum</div>
+            <div style="font-size:13px;color:#3b5bdb;font-weight:600;margin-bottom:4px;">${t.billingTitle}</div>
             <div style="font-size:14px;color:#1e3a8a;line-height:1.5;">
-              Första faktura: <strong>${firstBillingDate}</strong><br/>
-              Därefter faktureras du den <strong>28:e varje månad</strong>.
+              ${t.billingFirst}: <strong>${firstBillingDate}</strong><br/>
+              ${t.billingRecurr}
             </div>
           </div>
 
           <!-- Links -->
           <div style="margin-bottom:28px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;">Viktig information</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;">${t.infoTitle}</div>
             <table cellpadding="0" cellspacing="0">
-              <tr><td style="padding-bottom:8px;"><a href="https://inexpro.net/allmanna-villkor/" style="color:#5b7fff;text-decoration:none;font-size:14px;">📄 Tjänstevillkor</a></td></tr>
-              <tr><td style="padding-bottom:8px;"><a href="https://inexpro.net/policy-retur/" style="color:#5b7fff;text-decoration:none;font-size:14px;">↩️ Återbetalningspolicy</a></td></tr>
-              <tr><td><a href="https://inexpro.net/Integritetspolicy/" style="color:#5b7fff;text-decoration:none;font-size:14px;">🔒 Integritetspolicy</a></td></tr>
+              <tr><td style="padding-bottom:8px;"><a href="https://inexpro.net/allmanna-villkor/" style="color:#5b7fff;text-decoration:none;font-size:14px;">${t.terms}</a></td></tr>
+              <tr><td style="padding-bottom:8px;"><a href="https://inexpro.net/policy-retur/" style="color:#5b7fff;text-decoration:none;font-size:14px;">${t.refund}</a></td></tr>
+              <tr><td><a href="https://inexpro.net/Integritetspolicy/" style="color:#5b7fff;text-decoration:none;font-size:14px;">${t.privacy}</a></td></tr>
             </table>
           </div>
         </td></tr>
@@ -134,20 +185,17 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
         <!-- Support -->
         <tr><td style="padding:0 40px 40px;">
           <div style="background:#f8f9fc;border-radius:12px;padding:20px 24px;">
-            <div style="font-size:13px;font-weight:600;color:#0e0f13;margin-bottom:6px;">Behöver du hjälp?</div>
+            <div style="font-size:13px;font-weight:600;color:#0e0f13;margin-bottom:6px;">${t.helpTitle}</div>
             <div style="font-size:13px;color:#6b7280;line-height:1.6;">
-              Kontakta oss på <a href="mailto:info@inexpro.net" style="color:#5b7fff;text-decoration:none;">info@inexpro.net</a>
-              eller besök <a href="https://inexpro.net" style="color:#5b7fff;text-decoration:none;">inexpro.net</a>
+              ${t.helpText} <a href="mailto:info@inexpro.net" style="color:#5b7fff;text-decoration:none;">info@inexpro.net</a>
+              ${t.helpVisit} <a href="https://inexpro.net" style="color:#5b7fff;text-decoration:none;">inexpro.net</a>
             </div>
           </div>
         </td></tr>
 
         <!-- Footer -->
         <tr><td style="background:#f8f9fc;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-          <div style="font-size:12px;color:#9ca3af;line-height:1.6;">
-            © ${new Date().getFullYear()} InexPro. Alla rättigheter förbehållna.<br/>
-            Du får detta mail eftersom du prenumererar på en InexPro-tjänst.
-          </div>
+          <div style="font-size:12px;color:#9ca3af;line-height:1.6;">${t.footer}</div>
         </td></tr>
 
       </table>
