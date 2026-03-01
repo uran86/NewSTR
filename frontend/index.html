@@ -37,6 +37,31 @@
       padding: 3rem 1rem 5rem;
     }
 
+    /* ── Language switcher ── */
+    .lang-switcher {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+      background: #18191f;
+      border: 1px solid #2a2b33;
+      border-radius: 100px;
+      padding: 0.3rem;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: #7a7f91;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 0.35rem 1rem;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lang-btn.active { background: var(--accent); color: #fff; }
+
     /* ── Header ── */
     .header {
       text-align: center;
@@ -337,11 +362,17 @@
 </head>
 <body>
 
+<!-- ── Language Switcher ── -->
+<div class="lang-switcher">
+  <button class="lang-btn active" onclick="setLang('sv')">🇸🇪 Svenska</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+</div>
+
 <!-- ── Header ── -->
 <div class="header">
-  <div class="pill">🔒 Säker betalning via Stripe</div>
-  <h1>Välj ditt paket</h1>
-  <p class="subtitle">Fakturering sker den 28:e varje månad. Inget att betala idag.</p>
+  <div class="pill" id="t-pill">🔒 Säker betalning via Stripe</div>
+  <h1 id="t-h1">Välj ditt paket</h1>
+  <p class="subtitle" id="t-subtitle">Fakturering sker den 28:e varje månad. Inget att betala idag.</p>
 </div>
 
 <!-- ── Form ── -->
@@ -349,42 +380,42 @@
   <div class="card">
 
     <!-- Kontaktinfo -->
-    <p class="section-label">Dina uppgifter</p>
+    <p class="section-label" id="t-sec-contact">Dina uppgifter</p>
 
     <div class="form-group">
-      <label class="field-label" for="name">Namn <span style="color:var(--error)">*</span></label>
+      <label class="field-label" for="name"><span id="t-name">Namn</span> <span style="color:var(--error)">*</span></label>
       <input type="text" id="name" placeholder="Anna Andersson" autocomplete="name"/>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="email">E-postadress <span style="color:var(--error)">*</span></label>
+      <label class="field-label" for="email"><span id="t-email">E-postadress</span> <span style="color:var(--error)">*</span></label>
       <input type="email" id="email" placeholder="anna@foretag.se" autocomplete="email"/>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="company">Företagsnamn <span style="color:var(--error)">*</span></label>
+      <label class="field-label" for="company"><span id="t-company">Företagsnamn</span> <span style="color:var(--error)">*</span></label>
       <input type="text" id="company" placeholder="Företaget AB" autocomplete="organization"/>
     </div>
 
     <!-- Företagsadress + Postnr på samma rad -->
     <div class="row-address">
       <div class="form-group">
-        <label class="field-label" for="address">Företagsadress <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="address"><span id="t-address">Företagsadress</span> <span style="color:var(--error)">*</span></label>
         <input type="text" id="address" placeholder="Storgatan 1, Stockholm" autocomplete="street-address"/>
       </div>
       <div class="form-group">
-        <label class="field-label" for="postalCode">Postnr <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="postalCode"><span id="t-postal">Postnr</span> <span style="color:var(--error)">*</span></label>
         <input type="text" id="postalCode" placeholder="111 22" autocomplete="postal-code"/>
       </div>
     </div>
 
     <div class="row">
       <div class="form-group">
-        <label class="field-label" for="phone">Telefonnummer <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="phone"><span id="t-phone">Telefonnummer</span> <span style="color:var(--error)">*</span></label>
         <input type="tel" id="phone" placeholder="070-123 45 67" autocomplete="tel"/>
       </div>
       <div class="form-group">
-        <label class="field-label" for="country">Land/region <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="country"><span id="t-country">Land/region</span> <span style="color:var(--error)">*</span></label>
         <select id="country">
           <option value="SE" selected>🇸🇪 Sverige</option>
           <option value="NO">🇳🇴 Norge</option>
@@ -401,10 +432,10 @@
     <hr class="divider"/>
 
     <!-- Paket -->
-    <p class="section-label">Paket &amp; antal användare</p>
+    <p class="section-label" id="t-sec-package">Paket &amp; antal användare</p>
 
     <div class="form-group">
-      <label class="field-label" for="currency">Valuta <span style="color:var(--error)">*</span></label>
+      <label class="field-label" for="currency"><span id="t-currency">Valuta</span> <span style="color:var(--error)">*</span></label>
       <select id="currency" onchange="updatePrice()">
         <option value="SEK" selected>🇸🇪 SEK — Svenska kronor</option>
         <option value="EUR">🇪🇺 EUR — Euro</option>
@@ -413,9 +444,9 @@
 
     <div class="row">
       <div class="form-group">
-        <label class="field-label" for="product">Paket <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="product"><span id="t-product">Paket</span> <span style="color:var(--error)">*</span></label>
         <select id="product" onchange="updatePrice()">
-          <option value="">Välj paket...</option>
+          <option value="" id="t-select-pkg">Välj paket...</option>
           <option value="premiumE5">Premium Paket E5</option>
           <option value="premiumE3">Premium Paket E3</option>
           <option value="secCloud">Sec-Cloud Paket</option>
@@ -424,7 +455,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="field-label" for="quantity">Antal användare <span style="color:var(--error)">*</span></label>
+        <label class="field-label" for="quantity"><span id="t-quantity">Antal användare</span> <span style="color:var(--error)">*</span></label>
         <input type="number" id="quantity" min="1" placeholder="1" oninput="updatePrice()"/>
       </div>
     </div>
@@ -457,32 +488,32 @@
     <hr class="divider"/>
 
     <!-- Kortuppgifter -->
-    <p class="section-label">Kortuppgifter</p>
+    <p class="section-label" id="t-sec-card">Kortuppgifter</p>
 
     <div class="info-box">
       <div class="i-icon">i</div>
-      <span>Ditt kort sparas men <strong>inget debiteras idag</strong>. Första faktura skickas den 28:e nästa månad och därefter den 28:e varje månad.</span>
+      <span id="t-card-info">Ditt kort sparas men <strong>inget debiteras idag</strong>. Första faktura skickas den 28:e nästa månad och därefter den 28:e varje månad.</span>
     </div>
 
     <div class="form-group">
-      <label class="field-label">Kortnummer <span style="color:var(--error)">*</span></label>
+      <label class="field-label"><span id="t-cardnumber">Kortnummer</span> <span style="color:var(--error)">*</span></label>
       <div id="card-element"></div>
       <div id="card-errors"></div>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="cardholder">Kortinnehavarens namn <span style="color:var(--error)">*</span></label>
+      <label class="field-label" for="cardholder"><span id="t-cardholder">Kortinnehavarens namn</span> <span style="color:var(--error)">*</span></label>
       <input type="text" id="cardholder" placeholder="Anna Andersson" autocomplete="cc-name"/>
     </div>
 
     <hr class="divider"/>
 
     <!-- Kampanjkod -->
-    <p class="section-label">Kampanjkod</p>
+    <p class="section-label" id="t-sec-coupon">Kampanjkod</p>
     <div class="form-group">
       <div class="coupon-row">
         <input type="text" id="coupon" placeholder="Ange kampanjkod"/>
-        <button type="button" class="coupon-btn" onclick="applyCoupon()">Lägg till</button>
+        <button type="button" class="coupon-btn" id="t-coupon-btn" onclick="applyCoupon()">Lägg till</button>
       </div>
       <div class="coupon-status" id="coupon-status"></div>
     </div>
@@ -494,7 +525,7 @@
       <input type="checkbox" id="terms"/>
       <label class="check-label" for="terms">
         <div class="check-box"></div>
-        <span>Jag godkänner <a href="https://inexpro.net/allmanna-villkor/" target="_blank" onclick="event.stopPropagation()">Tjänstevillkoren</a> och <a href="https://inexpro.net/Integritetspolicy/" target="_blank" onclick="event.stopPropagation()">Integritetspolicyn</a> för InexPro. <span style="color:var(--error)">*</span></span>
+        <span id="t-terms">Jag godkänner <a href="https://inexpro.net/allmanna-villkor/" target="_blank" onclick="event.stopPropagation()">Tjänstevillkoren</a> och <a href="https://inexpro.net/Integritetspolicy/" target="_blank" onclick="event.stopPropagation()">Integritetspolicyn</a> för InexPro. <span style="color:var(--error)">*</span></span>
       </label>
     </div>
 
@@ -502,7 +533,7 @@
       <input type="checkbox" id="recurring"/>
       <label class="check-label" for="recurring">
         <div class="check-box"></div>
-        <span>Genom att prenumerera godkänner jag att InexPro debiterar mig enligt villkoren tills jag avbryter. Jag är <a href="https://inexpro.net/policy-retur/" target="_blank" onclick="event.stopPropagation()">berättigad till en återbetalning</a> enligt återbetalningspolicyn. <span style="color:var(--error)">*</span></span>
+        <span id="t-recurring">Genom att prenumerera godkänner jag att InexPro debiterar mig enligt villkoren tills jag avbryter. Jag är <a href="https://inexpro.net/policy-retur/" target="_blank" onclick="event.stopPropagation()">berättigad till en återbetalning</a> enligt återbetalningspolicyn. <span style="color:var(--error)">*</span></span>
       </label>
     </div>
 
@@ -511,24 +542,24 @@
       <div class="spinner" id="spinner"></div>
     </button>
     <div style="text-align:center; margin-top:0.75rem; margin-bottom:0.25rem;">
-      <span style="font-size:0.78rem; color:#6b7280; letter-spacing:0.03em;">Summa att betala idag</span>
+      <span id="t-today" style="font-size:0.78rem; color:#6b7280; letter-spacing:0.03em;">Summa att betala idag</span>
       <span style="font-size:1rem; font-weight:700; color:#34d399; margin-left:0.5rem;">0,00 kr</span>
-      <span style="font-size:0.75rem; color:#4b5563; margin-left:0.4rem;">— Faktura skickas den 28:e nästa månad</span>
+      <span id="t-invoice-note" style="font-size:0.75rem; color:#4b5563; margin-left:0.4rem;">— Faktura skickas den 28:e nästa månad</span>
     </div>
 
     <!-- Legal footer -->
     <div class="legal">
-      <div>Genom att prenumerera godkänner du att InexPro debiterar dig enligt villkoren tills du avbryter.</div>
+      <div id="t-legal1">Genom att prenumerera godkänner du att InexPro debiterar dig enligt villkoren tills du avbryter.</div>
       <div style="margin-top:0.3rem">
-        <a href="https://inexpro.net/allmanna-villkor/" target="_blank">Juridisk information</a>
+        <a href="https://inexpro.net/allmanna-villkor/" target="_blank" id="t-legal-terms">Juridisk information</a>
         <span class="sep">|</span>
-        <a href="https://inexpro.net/policy-retur/" target="_blank">Återbetalningar</a>
+        <a href="https://inexpro.net/policy-retur/" target="_blank" id="t-legal-refund">Återbetalningar</a>
         <span class="sep">|</span>
-        <a href="https://inexpro.net/Integritetspolicy/" target="_blank">Integritetspolicy</a>
+        <a href="https://inexpro.net/Integritetspolicy/" target="_blank" id="t-legal-privacy">Integritetspolicy</a>
       </div>
       <div style="margin-top:0.3rem">
-        Kontakta support: <a href="mailto:info@inexpro.net">info@inexpro.net</a>
-        eller <a href="https://inexpro.net" target="_blank">inexpro.net</a>
+        <span id="t-support">Kontakta support:</span> <a href="mailto:info@inexpro.net">info@inexpro.net</a>
+        <span id="t-or"> eller </span><a href="https://inexpro.net" target="_blank">inexpro.net</a>
       </div>
       <div class="powered">
         <span>Powered by</span>
@@ -542,16 +573,16 @@
 <!-- ── Success ── -->
 <div class="card success-screen" id="success-screen">
   <div class="success-icon">✓</div>
-  <h2>Prenumeration aktiverad!</h2>
-  <p>Tack! Din prenumeration är nu aktiv.<br>Inget har debiterats idag.</p>
+  <h2 id="t-success-h2">Prenumeration aktiverad!</h2>
+  <p id="t-success-p">Tack! Din prenumeration är nu aktiv.<br>Inget har debiterats idag.</p>
   <div class="billing-info">
-    Första faktura skickas <strong id="billing-date"></strong> och därefter den <strong>28:e varje månad</strong>.
+    <span id="t-billing-first">Första faktura skickas</span> <strong id="billing-date"></strong> <span id="t-billing-recurring">och därefter den <strong>28:e varje månad</strong>.</span>
     <br><br>
-    En bekräftelse skickas till <strong id="confirm-email"></strong>.
+    <span id="t-confirm-text">En bekräftelse skickas till</span> <strong id="confirm-email"></strong>.
   </div>
   <br>
   <div class="legal">
-    <a href="https://inexpro.net/policy-retur/" target="_blank">Återbetalningspolicy</a>
+    <a href="https://inexpro.net/policy-retur/" target="_blank" id="t-refund-link">Återbetalningspolicy</a>
     <span class="sep">|</span>
     <a href="mailto:info@inexpro.net">info@inexpro.net</a>
   </div>
@@ -584,6 +615,186 @@
     el.addEventListener('change', () => el.classList.remove('invalid'));
   });
 
+  // ── Language ─────────────────────────────────────────────
+  const LANG = {
+    sv: {
+      pill:           '🔒 Säker betalning via Stripe',
+      h1:             'Välj ditt paket',
+      subtitle:       'Fakturering sker den 28:e varje månad. Inget att betala idag.',
+      secContact:     'Dina uppgifter',
+      name:           'Namn',
+      email:          'E-postadress',
+      company:        'Företagsnamn',
+      address:        'Företagsadress',
+      postal:         'Postnr',
+      phone:          'Telefonnummer',
+      country:        'Land/region',
+      secPackage:     'Paket & antal användare',
+      currency:       'Valuta',
+      product:        'Paket',
+      selectPkg:      'Välj paket...',
+      quantity:       'Antal användare',
+      secCard:        'Kortuppgifter',
+      cardInfo:       'Ditt kort sparas men <strong>inget debiteras idag</strong>. Första faktura skickas den 28:e nästa månad och därefter den 28:e varje månad.',
+      cardnumber:     'Kortnummer',
+      cardholder:     'Kortinnehavarens namn',
+      secCoupon:      'Kampanjkod',
+      couponBtn:      'Lägg till',
+      couponPh:       'Ange kampanjkod',
+      terms:          'Jag godkänner <a href="https://inexpro.net/allmanna-villkor/" target="_blank" onclick="event.stopPropagation()">Tjänstevillkoren</a> och <a href="https://inexpro.net/Integritetspolicy/" target="_blank" onclick="event.stopPropagation()">Integritetspolicyn</a> för InexPro. <span style="color:var(--error)">*</span>',
+      recurring:      'Genom att prenumerera godkänner jag att InexPro debiterar mig enligt villkoren tills jag avbryter. Jag är <a href="https://inexpro.net/policy-retur/" target="_blank" onclick="event.stopPropagation()">berättigad till en återbetalning</a> enligt återbetalningspolicyn. <span style="color:var(--error)">*</span>',
+      btnText:        'Aktivera tjänstepaket',
+      today:          'Summa att betala idag',
+      invoiceNote:    '— Faktura skickas den 28:e nästa månad',
+      legal1:         'Genom att prenumerera godkänner du att InexPro debiterar dig enligt villkoren tills du avbryter.',
+      legalTerms:     'Juridisk information',
+      legalRefund:    'Återbetalningar',
+      legalPrivacy:   'Integritetspolicy',
+      support:        'Kontakta support:',
+      or:             ' eller ',
+      successH2:      'Prenumeration aktiverad!',
+      successP:       'Tack! Din prenumeration är nu aktiv.<br>Inget har debiterats idag.',
+      billingFirst:   'Första faktura skickas',
+      billingRecurr:  'och därefter den <strong>28:e varje månad</strong>.',
+      confirmText:    'En bekräftelse skickas till',
+      refundLink:     'Återbetalningspolicy',
+      errFill:        'Vänligen fyll i alla obligatoriska fält.',
+      errTerms:       'Du måste godkänna villkoren för att fortsätta.',
+      errServer:      'Något gick fel. Försök igen.',
+      errNetwork:     'Serverfel. Kontakta info@inexpro.net',
+      couponChecking: 'Kontrollerar...',
+      couponOk:       '✓ Kampanjkod tillagd: ',
+      couponInvalid:  'Ogiltig kampanjkod.',
+      couponError:    'Kunde inte kontrollera koden.',
+      phName:         'Anna Andersson',
+      phEmail:        'anna@foretag.se',
+      phCompany:      'Företaget AB',
+      phAddress:      'Storgatan 1, Stockholm',
+      phPostal:       '111 22',
+      phPhone:        '070-123 45 67',
+      phCardholder:   'Anna Andersson',
+    },
+    en: {
+      pill:           '🔒 Secure payment via Stripe',
+      h1:             'Choose your package',
+      subtitle:       'Billing occurs on the 28th of every month. Nothing to pay today.',
+      secContact:     'Your details',
+      name:           'Full name',
+      email:          'Email address',
+      company:        'Company name',
+      address:        'Company address',
+      postal:         'Postal code',
+      phone:          'Phone number',
+      country:        'Country/region',
+      secPackage:     'Package & number of users',
+      currency:       'Currency',
+      product:        'Package',
+      selectPkg:      'Select package...',
+      quantity:       'Number of users',
+      secCard:        'Card details',
+      cardInfo:       'Your card is saved but <strong>nothing is charged today</strong>. The first invoice is sent on the 28th next month and then on the 28th of every month.',
+      cardnumber:     'Card number',
+      cardholder:     'Cardholder name',
+      secCoupon:      'Promotional code',
+      couponBtn:      'Apply',
+      couponPh:       'Enter promotional code',
+      terms:          'I agree to the <a href="https://inexpro.net/allmanna-villkor/" target="_blank" onclick="event.stopPropagation()">Terms of Service</a> and <a href="https://inexpro.net/Integritetspolicy/" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a> of InexPro. <span style="color:var(--error)">*</span>',
+      recurring:      'By subscribing, I agree that InexPro may charge me according to the terms until I cancel. I am <a href="https://inexpro.net/policy-retur/" target="_blank" onclick="event.stopPropagation()">entitled to a refund</a> under the refund policy. <span style="color:var(--error)">*</span>',
+      btnText:        'Activate service package',
+      today:          'Amount due today',
+      invoiceNote:    '— Invoice sent on the 28th next month',
+      legal1:         'By subscribing, you agree that InexPro may charge you according to the terms until you cancel.',
+      legalTerms:     'Legal information',
+      legalRefund:    'Refunds',
+      legalPrivacy:   'Privacy Policy',
+      support:        'Contact support:',
+      or:             ' or ',
+      successH2:      'Subscription activated!',
+      successP:       'Thank you! Your subscription is now active.<br>Nothing has been charged today.',
+      billingFirst:   'First invoice sent on',
+      billingRecurr:  'and then on the <strong>28th of every month</strong>.',
+      confirmText:    'A confirmation will be sent to',
+      refundLink:     'Refund Policy',
+      errFill:        'Please fill in all required fields.',
+      errTerms:       'You must accept the terms to continue.',
+      errServer:      'Something went wrong. Please try again.',
+      errNetwork:     'Server error. Contact info@inexpro.net',
+      couponChecking: 'Checking...',
+      couponOk:       '✓ Promotional code applied: ',
+      couponInvalid:  'Invalid promotional code.',
+      couponError:    'Could not verify the code.',
+      phName:         'John Smith',
+      phEmail:        'john@company.com',
+      phCompany:      'Company Ltd',
+      phAddress:      '1 Main Street, London',
+      phPostal:       'EC1A 1BB',
+      phPhone:        '+44 7700 900000',
+      phCardholder:   'John Smith',
+    }
+  };
+
+  let currentLang = 'sv';
+
+  function setLang(lang) {
+    currentLang = lang;
+    const t = LANG[lang];
+    document.documentElement.lang = lang;
+    document.querySelectorAll('.lang-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', (lang === 'sv' && i === 0) || (lang === 'en' && i === 1));
+    });
+    // Text
+    document.getElementById('t-pill').textContent           = t.pill;
+    document.getElementById('t-h1').textContent             = t.h1;
+    document.getElementById('t-subtitle').textContent       = t.subtitle;
+    document.getElementById('t-sec-contact').textContent    = t.secContact;
+    document.getElementById('t-name').textContent           = t.name;
+    document.getElementById('t-email').textContent          = t.email;
+    document.getElementById('t-company').textContent        = t.company;
+    document.getElementById('t-address').textContent        = t.address;
+    document.getElementById('t-postal').textContent         = t.postal;
+    document.getElementById('t-phone').textContent          = t.phone;
+    document.getElementById('t-country').textContent        = t.country;
+    document.getElementById('t-sec-package').textContent    = t.secPackage;
+    document.getElementById('t-currency').textContent       = t.currency;
+    document.getElementById('t-product').textContent        = t.product;
+    document.getElementById('t-select-pkg').textContent     = t.selectPkg;
+    document.getElementById('t-quantity').textContent       = t.quantity;
+    document.getElementById('t-sec-card').textContent       = t.secCard;
+    document.getElementById('t-card-info').innerHTML        = t.cardInfo;
+    document.getElementById('t-cardnumber').textContent     = t.cardnumber;
+    document.getElementById('t-cardholder').textContent     = t.cardholder;
+    document.getElementById('t-sec-coupon').textContent     = t.secCoupon;
+    document.getElementById('t-coupon-btn').textContent     = t.couponBtn;
+    document.getElementById('t-terms').innerHTML            = t.terms;
+    document.getElementById('t-recurring').innerHTML        = t.recurring;
+    document.getElementById('btn-text').textContent         = t.btnText;
+    document.getElementById('t-today').textContent          = t.today;
+    document.getElementById('t-invoice-note').textContent   = t.invoiceNote;
+    document.getElementById('t-legal1').textContent         = t.legal1;
+    document.getElementById('t-legal-terms').textContent    = t.legalTerms;
+    document.getElementById('t-legal-refund').textContent   = t.legalRefund;
+    document.getElementById('t-legal-privacy').textContent  = t.legalPrivacy;
+    document.getElementById('t-support').textContent        = t.support;
+    document.getElementById('t-or').textContent             = t.or;
+    document.getElementById('t-success-h2').textContent     = t.successH2;
+    document.getElementById('t-success-p').innerHTML        = t.successP;
+    document.getElementById('t-billing-first').textContent  = t.billingFirst;
+    document.getElementById('t-billing-recurring').innerHTML = t.billingRecurr;
+    document.getElementById('t-confirm-text').textContent   = t.confirmText;
+    document.getElementById('t-refund-link').textContent    = t.refundLink;
+    // Placeholders
+    document.getElementById('name').placeholder        = t.phName;
+    document.getElementById('email').placeholder       = t.phEmail;
+    document.getElementById('company').placeholder     = t.phCompany;
+    document.getElementById('address').placeholder     = t.phAddress;
+    document.getElementById('postalCode').placeholder  = t.phPostal;
+    document.getElementById('phone').placeholder       = t.phPhone;
+    document.getElementById('cardholder').placeholder  = t.phCardholder;
+    document.getElementById('coupon').placeholder      = t.couponPh;
+    // Re-render price box labels
+    updatePrice();
+  }
+
   function toggleCheck(id, groupId) {
     const cb = document.getElementById(id);
     cb.checked = !cb.checked;
@@ -597,8 +808,9 @@
   async function applyCoupon() {
     const code = document.getElementById('coupon').value.trim();
     const statusEl = document.getElementById('coupon-status');
+    const t = LANG[currentLang];
     if (!code) return;
-    statusEl.textContent = 'Kontrollerar...';
+    statusEl.textContent = t.couponChecking;
     statusEl.className = 'coupon-status';
     try {
       const res = await fetch('/api/check-coupon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
@@ -606,25 +818,26 @@
       if (data.valid) {
         validCouponId = data.couponId;
         validCouponData = { ...data, percentOff: data.percentOff, amountOff: data.amountOff };
-        statusEl.textContent = '✓ Kampanjkod tillagd: ' + data.description;
+        statusEl.textContent = t.couponOk + data.description;
         statusEl.className = 'coupon-status ok';
         updatePrice();
       } else {
         validCouponId = null;
         validCouponData = null;
-        statusEl.textContent = 'Ogiltig kampanjkod.';
+        statusEl.textContent = t.couponInvalid;
         statusEl.className = 'coupon-status err';
         updatePrice();
       }
-    } catch { statusEl.textContent = 'Kunde inte kontrollera koden.'; statusEl.className = 'coupon-status err'; }
+    } catch { statusEl.textContent = t.couponError; statusEl.className = 'coupon-status err'; }
   }
 
   async function handleSubmit() {
+    const t          = LANG[currentLang];
     const name       = document.getElementById('name').value.trim();
     const email      = document.getElementById('email').value.trim();
     const company    = document.getElementById('company').value.trim();
     const address    = document.getElementById('address').value.trim();
-    const postalCode = document.getElementById('postalCode').value.trim(); // ← NY
+    const postalCode = document.getElementById('postalCode').value.trim();
     const phone      = document.getElementById('phone').value.trim();
     const country    = document.getElementById('country').value;
     const currency   = document.getElementById('currency').value;
@@ -640,7 +853,7 @@
       { id: 'email',      val: email },
       { id: 'company',    val: company },
       { id: 'address',    val: address },
-      { id: 'postalCode', val: postalCode }, // ← NY
+      { id: 'postalCode', val: postalCode },
       { id: 'phone',      val: phone },
       { id: 'product',    val: product },
       { id: 'quantity',   val: quantity },
@@ -652,17 +865,11 @@
       if (!f.val) { el.classList.add('invalid'); hasEmpty = true; }
       else el.classList.remove('invalid');
     });
-    if (hasEmpty) {
-      errEl.textContent = 'Vänligen fyll i alla obligatoriska fält.';
-      return;
-    }
+    if (hasEmpty) { errEl.textContent = t.errFill; return; }
 
     document.getElementById('group-terms').classList.toggle('error', !terms);
     document.getElementById('group-recurring').classList.toggle('error', !recurring);
-    if (!terms || !recurring) {
-      errEl.textContent = 'Du måste godkänna villkoren för att fortsätta.';
-      return;
-    }
+    if (!terms || !recurring) { errEl.textContent = t.errTerms; return; }
 
     setLoading(true);
     errEl.textContent = '';
@@ -679,7 +886,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, email, company, address, postalCode, // ← postalCode tillagt
+          name, email, company, address, postalCode,
           phone, country, currency,
           paymentMethodId: paymentMethod.id,
           productKey: product,
@@ -695,10 +902,10 @@
         document.getElementById('success-screen').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        errEl.textContent = data.error || 'Något gick fel. Försök igen.';
+        errEl.textContent = data.error || t.errServer;
         setLoading(false);
       }
-    } catch { errEl.textContent = 'Serverfel. Kontakta info@inexpro.net'; setLoading(false); }
+    } catch { errEl.textContent = t.errNetwork; setLoading(false); }
   }
 
   const PRICES_SEK = {
