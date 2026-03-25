@@ -256,7 +256,7 @@ async function sendConfirmationEmail({ to, name, productName, quantity, priceSEK
           <!-- CTA Button -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:36px;">
             <tr><td align="center">
-              <a href="https://e.pcloud.link/publink/show?code=kZPkKGZat9DeRObasppvaFfhcspB4CUL8gV"
+              <a href="https://e.pcloud.link/publink/show?code=kZ30KGZ83yHhQYNslbsb9i1GTVTU5FwwBjX"
                  style="display:inline-block;background:#5b7fff;color:#ffffff;font-family:Mulish,Arial,sans-serif;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:10px;letter-spacing:0.02em;">
                 ${onboardingLang.btn}
               </a>
